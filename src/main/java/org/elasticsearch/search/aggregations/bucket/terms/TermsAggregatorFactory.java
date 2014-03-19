@@ -38,6 +38,7 @@ public class TermsAggregatorFactory extends ValueSourceAggregatorFactory {
 
     public static final String EXECUTION_HINT_VALUE_MAP = "map";
     public static final String EXECUTION_HINT_VALUE_ORDINALS = "ordinals";
+    public static final String EXECUTION_HINT_VALUE_GLOBAL_ORDINALS = "global_ordinals";
 
     private final InternalOrder order;
     private final int requiredSize;
@@ -113,8 +114,8 @@ public class TermsAggregatorFactory extends ValueSourceAggregatorFactory {
         estimatedBucketCount = Math.min(estimatedBucketCount, 512);
 
         if (valuesSource instanceof BytesValuesSource) {
-            if (executionHint != null && !executionHint.equals(EXECUTION_HINT_VALUE_MAP) && !executionHint.equals(EXECUTION_HINT_VALUE_ORDINALS)) {
-                throw new ElasticsearchIllegalArgumentException("execution_hint can only be '" + EXECUTION_HINT_VALUE_MAP + "' or '" + EXECUTION_HINT_VALUE_ORDINALS + "', not " + executionHint);
+            if (executionHint != null && !executionHint.equals(EXECUTION_HINT_VALUE_MAP) && !executionHint.equals(EXECUTION_HINT_VALUE_ORDINALS) && !executionHint.equals(EXECUTION_HINT_VALUE_GLOBAL_ORDINALS)) {
+                throw new ElasticsearchIllegalArgumentException("execution_hint can only be '" + EXECUTION_HINT_VALUE_MAP + "' or '" + EXECUTION_HINT_VALUE_ORDINALS  + "' or '" + EXECUTION_HINT_VALUE_GLOBAL_ORDINALS + "', not " + executionHint);
             }
             String execution = executionHint;
             if (!(valuesSource instanceof BytesValuesSource.WithOrdinals)) {
@@ -132,7 +133,12 @@ public class TermsAggregatorFactory extends ValueSourceAggregatorFactory {
             }
             assert execution != null;
 
-            if (execution.equals(EXECUTION_HINT_VALUE_ORDINALS)) {
+            if (execution.equals(EXECUTION_HINT_VALUE_GLOBAL_ORDINALS)) {
+                if (!((BytesValuesSource.WithOrdinals) valuesSource).hasGlobalOrdinals()) {
+                    throw new ElasticsearchIllegalArgumentException("execution_hint '" + EXECUTION_HINT_VALUE_GLOBAL_ORDINALS + "' can only be used, if global ordinals have not been disabled");
+                }
+                return new StringTermsAggregator.WithGlobalOrdinals(name, factories, (BytesValuesSource.WithOrdinals) valuesSource, estimatedBucketCount, order, requiredSize, shardSize, minDocCount, aggregationContext, parent);
+            } else if (execution.equals(EXECUTION_HINT_VALUE_ORDINALS)) {
                 assert includeExclude == null;
                 return new StringTermsAggregator.WithOrdinals(name, factories, (BytesValuesSource.WithOrdinals) valuesSource, estimatedBucketCount, order, requiredSize, shardSize, minDocCount, aggregationContext, parent);
             } else {

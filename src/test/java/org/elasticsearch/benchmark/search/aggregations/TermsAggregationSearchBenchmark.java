@@ -135,6 +135,7 @@ public class TermsAggregationSearchBenchmark {
                       .field("type", "string")
                       .field("index", "no")
                       .startObject("fielddata")
+                        .field("global_ordinals", "fixed")
                         .field("format", "doc_values")
                       .endObject()
                     .endObject()
@@ -142,6 +143,7 @@ public class TermsAggregationSearchBenchmark {
                       .field("type", "string")
                       .field("index", "no")
                       .startObject("fielddata")
+                        .field("global_ordinals", "fixed")
                         .field("format", "doc_values")
                       .endObject()
                     .endObject()
@@ -232,6 +234,7 @@ public class TermsAggregationSearchBenchmark {
         stats.add(terms("terms_facet_map_s", Method.FACET, "s_value", "map"));
         stats.add(terms("terms_facet_map_s_dv", Method.FACET, "s_value_dv", "map"));
         stats.add(terms("terms_agg_s", Method.AGGREGATION, "s_value", null));
+        stats.add(terms("terms_agg_s", Method.AGGREGATION, "s_value", "global_ordinals"));
         stats.add(terms("terms_agg_s_dv", Method.AGGREGATION, "s_value_dv", null));
         stats.add(terms("terms_agg_map_s", Method.AGGREGATION, "s_value", "map"));
         stats.add(terms("terms_agg_map_s_dv", Method.AGGREGATION, "s_value_dv", "map"));
